@@ -43,5 +43,11 @@ mylesagray/boilerjuice-tank
 Access the API:
 
 ```sh
-[open localhost:8080](http://localhost:8080)
+open http://localhost:8080
+```
+
+Access Prometheus scraping endpoint:
+
+```sh
+open http://localhost:8080/metrics
 ```
