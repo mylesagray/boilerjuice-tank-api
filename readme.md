@@ -2,7 +2,7 @@
 
 ## Intro
 
-Boilerjuice.com has public API, and pages are rendered via PHP with data pre-baked, as a result - to get information back from the site about your Oil Tank's current level you need to auth with the site and scrape the data back from the web pages.
+Boilerjuice.com has no public API, and pages are rendered via PHP with data pre-baked, as a result - to get information back from the site about your Oil Tank's current level you need to auth with the site and scrape the data back from the web pages.
 
 That is what this project does.
 
