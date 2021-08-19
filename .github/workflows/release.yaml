@@ -43,7 +43,9 @@ jobs:
           push: true
           tags: |
             mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
+            mylesagray/boilerjuice-tank:latest
             ghcr.io/mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
+            ghcr.io/mylesagray/boilerjuice-tank:latest
           file: ./Dockerfile
           build-args: |
               IMAGE_TAG=${{ env.IMAGE_TAG }}
