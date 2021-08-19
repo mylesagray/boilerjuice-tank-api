@@ -12,6 +12,9 @@ jobs:
       - 
         name: Checkout repo
         uses: actions/checkout@master
+      - 
+        name: Build image tag
+        run: echo "IMAGE_TAG=$(git log -1 --pretty=%h)" >> $GITHUB_ENV 
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -39,8 +42,8 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm
           push: true
           tags: |
-            mylesagray/boilerjuice-tank:${{ env.VERSION }}
-            ghcr.io/mylesagray/boilerjuice-tank:${{ env.VERSION }}
+            mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
+            ghcr.io/mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
           file: ./Dockerfile
           build-args: |
-              VERSION=$(git log -1 --pretty=%h)
+              IMAGE_TAG=${{ env.IMAGE_TAG }}
