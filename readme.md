@@ -51,3 +51,12 @@ Access Prometheus scraping endpoint:
 ```sh
 open http://localhost:8080/metrics
 ```
+
+## Build
+
+Build multiarch image:
+
+```sh
+docker buildx create --use
+docker buildx build --platform linux/arm64,linux/amd64 -t mylesagray/boilerjuice-tank:v0.2 -t mylesagray/boilerjuice-tank -t ghcr.io/mylesagray/boilerjuice-tank:v0.2 -t ghcr.io/mylesagray/boilerjuice-tank --push .
+```
