@@ -2,7 +2,7 @@ import requests
 from os import environ
 from lxml import html
 from flask import Response, Flask
-from prometheus_client import Gauge, generate_latest
+from prometheus_client import Gauge, Enum, generate_latest
 
 # Import variables from environment
 if environ.get('BJ_USERNAME') != "username":
@@ -21,11 +21,13 @@ URL = "https://www.boilerjuice.com/my-tank/"
 
 # Create Prometheus Gauge objects
 oil_level_litres = Gauge(
-    'oil_level_litres', 'BoilerJuice tank level in Litres', ['email', 'level_name'])
+    'oil_level_litres', 'BoilerJuice tank level in Litres', ['email'])
 oil_level_percent = Gauge(
-    'oil_level_percent', 'BoilerJuice tank level percentage full', ['email', 'level_name'])
+    'oil_level_percent', 'BoilerJuice tank level percentage full', ['email'])
 oil_level_capacity = Gauge(
     'oil_level_capacity', 'BoilerJuice tank capacity in Litres', ['email'])
+oil_level_name = Enum(
+    'oil_level_name', 'BoilerJuice tank level name', ['email'], states=['High', 'Medium', 'Low'])
 
 session = None
 
@@ -117,13 +119,16 @@ def metrics():
 
         # Populate Prometheus Gauge objects with new data
         oil_level_litres.labels(
-            email=USERNAME, level_name=bj_data["level_name"]).set(bj_data["litres"])
+            email=USERNAME).set(bj_data["litres"])
 
         oil_level_percent.labels(
-            email=USERNAME, level_name=bj_data["level_name"]).set(bj_data["percent"])
+            email=USERNAME).set(bj_data["percent"])
 
         oil_level_capacity.labels(
             email=USERNAME).set(bj_data["capacity"])
+        
+        oil_level_name.labels(
+            email=USERNAME).state(bj_data["level_name"])
 
         # Return Prometheus metrics
         return Response(generate_latest(), mimetype="text/plain")
