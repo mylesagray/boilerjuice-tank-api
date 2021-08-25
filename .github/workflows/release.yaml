@@ -35,6 +35,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Login to Harbor
+        uses: docker/login-action@v1
+        with:
+          registry: harbor.blah.cloud
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_TOKEN }}
+      -
         name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -46,6 +53,8 @@ jobs:
             mylesagray/boilerjuice-tank:latest
             ghcr.io/mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
             ghcr.io/mylesagray/boilerjuice-tank:latest
+            harbor.blah.cloud/mylesagray/boilerjuice-tank:${{ env.IMAGE_TAG }}
+            harbor.blah.cloud/mylesagray/boilerjuice-tank:latest
           file: ./Dockerfile
           build-args: |
               IMAGE_TAG=${{ env.IMAGE_TAG }}
