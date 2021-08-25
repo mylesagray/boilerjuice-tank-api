@@ -94,7 +94,7 @@ def main():
                     level = level.replace(")", "")
                     level = level.replace("litres", "")
                     level = level.strip()
-                    bj_data["level"] = int(level)
+                    bj_data["level"] = float(level)
                 # In percentage
                 else:
                     percent = level
@@ -136,5 +136,5 @@ def metrics():
         print("Unable to create prometheus metrics:", e)
 
 if __name__ == '__main__':
-    app.debug=False
+    app.debug=True
     app.run(host='0.0.0.0', port=8080)
