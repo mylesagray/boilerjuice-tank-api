@@ -15,9 +15,14 @@ if environ.get('BJ_PASSWORD') != "password":
 else:
     raise Exception("Please set the password in the environment variables.")
 
+if environ.get('TANK_ID') != "id" and environ.get('TANK_ID') != "":
+    TANK = environ.get('TANK_ID')
+else:
+    raise Exception("Please set the tank ID in the environment variables.")
+
 # Specify login and target URLs for BoilerJuice
-LOGIN_URL = "https://www.boilerjuice.com/login/"
-URL = "https://www.boilerjuice.com/my-tank/"
+LOGIN_URL = "https://www.boilerjuice.com/uk/users/login"
+URL = "https://www.boilerjuice.com/uk/users/tanks/"
 
 # Create Prometheus Gauge objects
 oil_level_litres = Gauge(
@@ -40,12 +45,16 @@ def login():
         # Get login csrf token
         result = session_requests.get(LOGIN_URL)
         tree = html.fromstring(result.text)
+        authenticity_token = list(
+            set(tree.xpath("//input[@name='authenticity_token']/@value")))[0]
 
         # Create payload
         payload = {
-            "username": USERNAME,
-            "password": PASSWORD
-        }
+            "user[email]": USERNAME,
+            "user[password]": PASSWORD,
+            "authenticity_token": authenticity_token,
+            "commit": "Log in"
+            }
 
         # Perform login
         result = session_requests.post(
@@ -73,10 +82,11 @@ def main():
             SESH = login()
         
         if 'jwt' in SESH.cookies:
-            result = SESH.get(URL, headers=dict(referer=URL))
+            result = SESH.get(URL+TANK+'/edit', headers=dict(referer=URL))
 
             tree = html.fromstring(result.content)
-            tank_level = tree.xpath("//div[@class='jerryCan']/div/p/text()")
+            tank_level = tree.xpath(
+                "//div[contains(@class, 'jerryCan')]/div/p/text()")
             tank_capacity = tree.xpath(
                 "//input[@title='tank-size-count']/@value")
             tank_level_name = tree.xpath(

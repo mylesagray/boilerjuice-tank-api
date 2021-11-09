@@ -7,6 +7,7 @@ RUN pip install -r /requirements.txt
 
 ENV BJ_USERNAME username
 ENV BJ_PASSWORD password
+ENV TANK_ID id
 
 COPY app/ /app
 WORKDIR /app
