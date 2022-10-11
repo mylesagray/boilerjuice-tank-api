@@ -1,5 +1,9 @@
-import requests
+"""
+Module provides a JSON API for querying information from BoilerJuice website
+"""
 from os import environ
+import sys
+import requests
 from lxml import html
 from flask import Response, Flask
 from prometheus_client import Gauge, Enum, generate_latest
@@ -34,10 +38,13 @@ oil_level_capacity = Gauge(
 oil_level_name = Enum(
     'oil_level_name', 'BoilerJuice tank level name', ['email'], states=['High', 'Medium', 'Low'])
 
-session = None
-
 # Login to BoilerJuice
+
+
 def login():
+    """
+    Logs into BoilerJuice website and populates the session key
+    """
     try:
         # Create a session, and use for all future requests
         session_requests = requests.session()
@@ -54,33 +61,41 @@ def login():
             "user[password]": PASSWORD,
             "authenticity_token": authenticity_token,
             "commit": "Log in"
-            }
+        }
 
         # Perform login
         result = session_requests.post(
             LOGIN_URL, data=payload, headers=dict(referer=LOGIN_URL))
-        
+
         if 'jwt' in session_requests.cookies:
             print("Login successful")
         else:
             print("Login failed")
-            exit()
+            sys.exit()
 
         return session_requests
-    except Exception as e:
-        print(e)
+    except Exception as err:
+        print(err)
+        raise
+
 
 SESH = None
 
 app = Flask(__name__)
+
+
 @app.route('/', methods=['GET'])
 def main():
+    """
+    Retrieves tank information and builds
+    a JSON object for API return
+    """
     try:
         global SESH
         # Scrape url
-        if SESH == None or 'jwt' not in SESH.cookies:
+        if SESH is None or 'jwt' not in SESH.cookies:
             SESH = login()
-        
+
         if 'jwt' in SESH.cookies:
             result = SESH.get(URL+TANK+'/edit', headers=dict(referer=URL))
 
@@ -115,14 +130,18 @@ def main():
                     "capacity": tank_capacity[0], "level_name": tank_level_name[0]}
 
             # Return API result
-            return(data)
+            return data
 
-    except Exception as e:
-        print("Unable to connect to boilerjuice.com", e)
+    except Exception as err:
+        print("Unable to connect to boilerjuice.com", err)
+        raise
 
 
 @app.route('/metrics', methods=['GET'])
 def metrics():
+    """
+    Prometheus metric endpoint build and export
+    """
     try:
         # Pull back latest metrics from API
         bj_data = main()
@@ -136,15 +155,17 @@ def metrics():
 
         oil_level_capacity.labels(
             email=USERNAME).set(bj_data["capacity"])
-        
+
         oil_level_name.labels(
             email=USERNAME).state(bj_data["level_name"])
 
         # Return Prometheus metrics
         return Response(generate_latest(), mimetype="text/plain")
-    except Exception as e:
-        print("Unable to create prometheus metrics:", e)
+    except Exception as err:
+        print("Unable to create prometheus metrics:", err)
+        raise
+
 
 if __name__ == '__main__':
-    app.debug=True
+    app.debug = False
     app.run(host='0.0.0.0', port=8080)

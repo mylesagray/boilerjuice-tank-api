@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+  boilerjuice-api:
+    image: ghcr.io/mylesagray/boilerjuice-tank-api:latest
+    build: .
+    ports:
+      - "8080:8080/tcp"
+    env_file: .env
+    restart: unless-stopped
