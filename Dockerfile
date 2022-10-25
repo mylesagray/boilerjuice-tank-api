@@ -1,4 +1,4 @@
-FROM python:3.10-alpine as base
+FROM python:3.11-alpine as base
 
 LABEL org.opencontainers.image.authors="Myles Gray"
 LABEL org.opencontainers.image.source='https://github.com/mylesagray/boilerjuice-tank-api'
