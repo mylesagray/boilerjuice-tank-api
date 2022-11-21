@@ -1,4 +1,4 @@
-FROM python:3.10-alpine@sha256:447f4081c041840a1d4f66553d920f7878d260433b55497250546346546102fa as base
+FROM python:3.10-alpine@sha256:00be2731a1c650d3573aebd84a46c06f3a3251377323f6f43ff1386e70ea2992 as base
 
 LABEL org.opencontainers.image.authors="Myles Gray"
 LABEL org.opencontainers.image.source='https://github.com/mylesagray/boilerjuice-tank-api'
