@@ -47,10 +47,10 @@ def login():
     """
     try:
         # Create a session, and use for all future requests
-        session_requests = requests.session()
+        session = requests.session()
 
         # Get login csrf token
-        result = session_requests.get(LOGIN_URL)
+        result = session.get(LOGIN_URL)
         tree = html.fromstring(result.text)
         authenticity_token = list(
             set(tree.xpath("//input[@name='authenticity_token']/@value")))[0]
@@ -64,16 +64,17 @@ def login():
         }
 
         # Perform login
-        result = session_requests.post(
+        result = session.post(
             LOGIN_URL, data=payload, headers=dict(referer=LOGIN_URL))
 
-        if 'jwt' in session_requests.cookies:
+        if 'jwt' in session.cookies:
             print("Login successful")
         else:
             print("Login failed")
             sys.exit()
 
-        return session_requests
+        return session
+
     except Exception as err:
         print(err)
         raise
@@ -101,11 +102,14 @@ def main():
 
             tree = html.fromstring(result.content)
             tank_level = tree.xpath(
-                "//div[contains(@class, 'jerryCan')]/div/p/text()")
+                "//div[contains(@id, 'usable-oil')]/div/p/text()")
             tank_capacity = tree.xpath(
                 "//input[@title='tank-size-count']/@value")
             tank_level_name = tree.xpath(
                 "//div[@class='bar-container']/div[@class='status']/p/text()")
+            tank_percentage = tree.xpath(
+                "//div[contains(@id, 'usable-oil')]//p[contains(concat(' ',normalize-space(@class),' '),' percentage ')]/text()"
+            )
 
             # Create object to store scraped data in
             bj_data = {}
@@ -115,19 +119,20 @@ def main():
                 # In litres
                 if "litres" in level:
                     # remove parenthesis
-                    level = level.replace("(", "")
-                    level = level.replace(")", "")
+                    level = level.replace("We estimate that you have ", "")
+                    level = level.replace(
+                        "of usable oil left in your tank.", "")
                     level = level.replace("litres", "")
                     level = level.strip()
                     bj_data["level"] = float(level)
-                # In percentage
-                else:
-                    percent = level
-                    bj_data["percent"] = percent
+
+            bj_data["percent"] = tank_percentage[0]
 
             # Populate data object
             data = {"litres": bj_data["level"], "percent": bj_data["percent"],
-                    "capacity": tank_capacity[0], "level_name": tank_level_name[0]}
+                    "capacity": tank_capacity[0]}
+            if tank_level_name != []:
+                data["level_name"] = tank_level_name[0]
 
             # Return API result
             return data
