@@ -108,7 +108,7 @@ def main():
             tank_level_name = tree.xpath(
                 "//div[@class='bar-container']/div[@class='status']/p/text()")
             tank_percentage = tree.xpath(
-                "//div[contains(@id, 'usable-oil')]//p[contains(concat(' ',normalize-space(@class),' '),' percentage ')]/text()"
+                "//div[contains(@id, 'usable-oil')]//div/@data-percentage"
             )
 
             # Create object to store scraped data in
