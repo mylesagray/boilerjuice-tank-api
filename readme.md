@@ -16,10 +16,11 @@ Example API output:
 
 ```json
 {
-  "capacity": "1000",
-  "level_name": "High",
-  "litres": "750",
-  "percent": "75"
+  "capacity":"1055",
+  "litres":750.0,
+  "percent":"70",
+  "total_litres":950.0,
+  "total_percent":"90"
 }
 ```
 
