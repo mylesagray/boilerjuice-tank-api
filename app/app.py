@@ -31,6 +31,8 @@ URL = "https://www.boilerjuice.com/uk/users/tanks/"
 # Create Prometheus Gauge objects
 oil_level_litres = Gauge(
     'oil_level_litres', 'BoilerJuice tank level in Litres', ['email'])
+oil_level_total_litres = Gauge(
+    'oil_level_total_litres', 'BoilerJuice tank total level in Litres', ['email'])
 oil_level_percent = Gauge(
     'oil_level_percent', 'BoilerJuice tank level percentage full', ['email'])
 oil_level_capacity = Gauge(
@@ -103,12 +105,16 @@ def main():
             tree = html.fromstring(result.content)
             tank_level = tree.xpath(
                 "//div[contains(@id, 'usable-oil')]/div/p/text()")
+            tank_total_level = tree.xpath(
+                "//div[contains(@id, 'total-oil')]/div/p/text()")
             tank_capacity = tree.xpath(
                 "//input[@title='tank-size-count']/@value")
             tank_level_name = tree.xpath(
                 "//div[@class='bar-container']/div[@class='status']/p/text()")
             tank_percentage = tree.xpath(
-                "//div[contains(@id, 'usable-oil')]//div/@data-percentage"
+                "//div[contains(@id, 'usable-oil')]//div/@data-percentage")
+            tank_total_percentage = tree.xpath(
+                "//div[contains(@id, 'total-oil')]//div/@data-percentage"
             )
 
             # Create object to store scraped data in
@@ -126,11 +132,23 @@ def main():
                     level = level.strip()
                     bj_data["level"] = float(level)
 
+            for level in tank_total_level:
+                # In litres
+                if "litres" in level:
+                    # remove parenthesis
+                    level = level.replace("We estimate that you have ", "")
+                    level = level.replace(
+                        "of oil left in your tank.", "")
+                    level = level.replace("litres", "")
+                    level = level.strip()
+                    bj_data["total_level"] = float(level)
+
             bj_data["percent"] = tank_percentage[0]
+            bj_data["total_percent"] = tank_total_percentage[0]
 
             # Populate data object
-            data = {"litres": bj_data["level"], "percent": bj_data["percent"],
-                    "capacity": tank_capacity[0]}
+            data = {"litres": bj_data["level"], "total_litres": bj_data["total_level"], "percent": bj_data["percent"],
+                    "total_percent": bj_data["total_percent"], "capacity": tank_capacity[0]}
             if tank_level_name != []:
                 data["level_name"] = tank_level_name[0]
 
@@ -154,6 +172,9 @@ def metrics():
         # Populate Prometheus Gauge objects with new data
         oil_level_litres.labels(
             email=USERNAME).set(bj_data["litres"])
+
+        oil_level_total_litres.labels(
+            email=USERNAME).set(bj_data["total_litres"])
 
         oil_level_percent.labels(
             email=USERNAME).set(bj_data["percent"])
