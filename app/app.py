@@ -35,6 +35,8 @@ oil_level_total_litres = Gauge(
     'oil_level_total_litres', 'BoilerJuice tank total level in Litres', ['email'])
 oil_level_percent = Gauge(
     'oil_level_percent', 'BoilerJuice tank level percentage full', ['email'])
+oil_level_total_percent = Gauge(
+    'oil_level_total_percent', 'BoilerJuice tank total level percentage full', ['email'])
 oil_level_capacity = Gauge(
     'oil_level_capacity', 'BoilerJuice tank capacity in Litres', ['email'])
 oil_level_name = Enum(
@@ -178,6 +180,9 @@ def metrics():
 
         oil_level_percent.labels(
             email=USERNAME).set(bj_data["percent"])
+
+        oil_level_total_percent.labels(
+            email=USERNAME).set(bj_data["total_percent"])
 
         oil_level_capacity.labels(
             email=USERNAME).set(bj_data["capacity"])
