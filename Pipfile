@@ -7,7 +7,7 @@ name = "pypi"
 requests = "==2.32.3"
 lxml = "==4.9.4"
 flask = "==2.3.3"
-prometheus-client = "==0.21.0"
+prometheus-client = "==0.21.1"
 
 [dev-packages]
 autopep8 = "*"
