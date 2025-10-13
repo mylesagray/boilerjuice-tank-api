@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_boilerjuice_tank_api_1760364969295-pr-trigger-input-set
+  identifier: Build_boilerjuice_tank_api_1760364969295prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: testcdapp
+  pipeline:
+    identifier: Build_boilerjuice_tank_api_1760364969295
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
