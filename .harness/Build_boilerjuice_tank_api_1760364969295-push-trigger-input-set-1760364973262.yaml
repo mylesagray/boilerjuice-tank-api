@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_boilerjuice_tank_api_1760364969295-push-trigger-input-set
+  identifier: Build_boilerjuice_tank_api_1760364969295pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: testcdapp
+  pipeline:
+    identifier: Build_boilerjuice_tank_api_1760364969295
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
