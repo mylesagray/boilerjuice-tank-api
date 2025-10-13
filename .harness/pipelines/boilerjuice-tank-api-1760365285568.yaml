@@ -25,7 +25,7 @@ pipeline:
             type: KubernetesDirect
             spec:
               connectorRef: harnessk8sconnector
-              namespace: tank-api-builds
+              namespace: harness-builds
               automountServiceAccountToken: true
               nodeSelector: {}
               os: Linux
