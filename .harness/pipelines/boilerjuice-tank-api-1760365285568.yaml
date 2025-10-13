@@ -17,14 +17,18 @@ pipeline:
                   name: Echo Welcome Message
                   identifier: Echo_Welcome_Message
                   spec:
+                    connectorRef: account.harnessImage
+                    image: tank-api:latest
                     shell: Sh
                     command: echo "Welcome to Harness CI"
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: harnessk8sconnector
+              namespace: tank-api-builds
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
   properties:
     ci:
       codebase:
