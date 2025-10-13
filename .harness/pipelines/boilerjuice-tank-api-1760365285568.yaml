@@ -14,11 +14,11 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Echo Welcome Message
-                  identifier: Echo_Welcome_Message
+                  name: Echo Test
+                  identifier: Echo_Test
                   spec:
                     connectorRef: account.harnessImage
-                    image: tank-api:latest
+                    image: busybox:latest
                     shell: Sh
                     command: echo "Welcome to Harness CI"
           infrastructure:
