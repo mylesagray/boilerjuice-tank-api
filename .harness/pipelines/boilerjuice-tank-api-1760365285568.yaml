@@ -17,7 +17,7 @@ pipeline:
                   name: Echo Test
                   identifier: Echo_Test
                   spec:
-                    connectorRef: account.harnessImage
+                    connectorRef: InternalDHProxy
                     image: busybox:latest
                     shell: Sh
                     command: echo "Welcome to Harness CI"
