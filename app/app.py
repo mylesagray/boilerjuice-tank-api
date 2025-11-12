@@ -3,6 +3,7 @@ Module provides a JSON API for querying information from BoilerJuice website
 """
 from os import environ
 import sys
+import re
 import requests
 from lxml import html
 from flask import Response, Flask
@@ -41,8 +42,6 @@ oil_level_capacity = Gauge(
     'oil_level_capacity', 'BoilerJuice tank capacity in Litres', ['email'])
 oil_level_name = Enum(
     'oil_level_name', 'BoilerJuice tank level name', ['email'], states=['High', 'Medium', 'Low'])
-
-# Login to BoilerJuice
 
 
 def login():
@@ -102,7 +101,7 @@ def main():
             SESH = login()
 
         if 'jwt' in SESH.cookies:
-            result = SESH.get(URL+TANK+'/edit', headers=dict(referer=URL))
+            result = SESH.get(URL + TANK + '/edit', headers=dict(referer=URL))
 
             tree = html.fromstring(result.content)
             tank_level = tree.xpath(
@@ -122,36 +121,34 @@ def main():
             # Create object to store scraped data in
             bj_data = {}
 
-            # Find the oil level
+            # --- Fixed parsing for usable oil level ---
             for level in tank_level:
-                # In litres
                 if "litres" in level:
-                    # remove parenthesis
-                    level = level.replace("We estimate that you have ", "")
-                    level = level.replace(
-                        "of usable oil left in your tank.", "")
-                    level = level.replace("litres", "")
-                    level = level.strip()
-                    bj_data["level"] = float(level)
+                    match = re.search(r"(\d+(?:\.\d+)?)", level)
+                    if match:
+                        bj_data["level"] = float(match.group(1))
 
+            # --- Fixed parsing for total oil level ---
             for level in tank_total_level:
-                # In litres
                 if "litres" in level:
-                    # remove parenthesis
-                    level = level.replace("We estimate that you have ", "")
-                    level = level.replace(
-                        "of oil left in your tank.", "")
-                    level = level.replace("litres", "")
-                    level = level.strip()
-                    bj_data["total_level"] = float(level)
+                    match = re.search(r"(\d+(?:\.\d+)?)", level)
+                    if match:
+                        bj_data["total_level"] = float(match.group(1))
 
-            bj_data["percent"] = tank_percentage[0]
-            bj_data["total_percent"] = tank_total_percentage[0]
+            # Percentages and capacity
+            bj_data["percent"] = float(tank_percentage[0]) if tank_percentage else 0.0
+            bj_data["total_percent"] = float(tank_total_percentage[0]) if tank_total_percentage else 0.0
 
             # Populate data object
-            data = {"litres": bj_data["level"], "total_litres": bj_data["total_level"], "percent": bj_data["percent"],
-                    "total_percent": bj_data["total_percent"], "capacity": tank_capacity[0]}
-            if tank_level_name != []:
+            data = {
+                "litres": bj_data.get("level", 0.0),
+                "total_litres": bj_data.get("total_level", 0.0),
+                "percent": bj_data.get("percent", 0.0),
+                "total_percent": bj_data.get("total_percent", 0.0),
+                "capacity": float(tank_capacity[0]) if tank_capacity else 0.0
+            }
+
+            if tank_level_name:
                 data["level_name"] = tank_level_name[0]
 
             # Return API result
@@ -172,26 +169,18 @@ def metrics():
         bj_data = main()
 
         # Populate Prometheus Gauge objects with new data
-        oil_level_litres.labels(
-            email=USERNAME).set(bj_data["litres"])
+        oil_level_litres.labels(email=USERNAME).set(bj_data["litres"])
+        oil_level_total_litres.labels(email=USERNAME).set(bj_data["total_litres"])
+        oil_level_percent.labels(email=USERNAME).set(bj_data["percent"])
+        oil_level_total_percent.labels(email=USERNAME).set(bj_data["total_percent"])
+        oil_level_capacity.labels(email=USERNAME).set(bj_data["capacity"])
 
-        oil_level_total_litres.labels(
-            email=USERNAME).set(bj_data["total_litres"])
-
-        oil_level_percent.labels(
-            email=USERNAME).set(bj_data["percent"])
-
-        oil_level_total_percent.labels(
-            email=USERNAME).set(bj_data["total_percent"])
-
-        oil_level_capacity.labels(
-            email=USERNAME).set(bj_data["capacity"])
-
-        oil_level_name.labels(
-            email=USERNAME).state(bj_data["level_name"])
+        if "level_name" in bj_data:
+            oil_level_name.labels(email=USERNAME).state(bj_data["level_name"])
 
         # Return Prometheus metrics
         return Response(generate_latest(), mimetype="text/plain")
+
     except Exception as err:
         print("Unable to create prometheus metrics:", err)
         raise
